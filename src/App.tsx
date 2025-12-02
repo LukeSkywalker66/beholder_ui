@@ -1,18 +1,16 @@
 import SearchBox from "./components/SearchBox";
 import './App.css';
-
-// Importá la imagen transparente
-import portadaImg from './assets/beholder2.png';
+import portadaImg from './assets/beho9lder1.png';
 
 function App() {
   return (
     <div className="app">
-      {/* Imagen arriba */}
-      <img src={portadaImg} alt="Logo Beholder" className="logo" />
+      <div className="header">
+        <h1>Beholder</h1>
+        <img src={portadaImg} alt="Logo Beholder" className="logo-right" />
+      </div>
 
-      <h1>Beholder</h1>
       <h2>Diagnóstico centralizado de 2F Internet</h2>
-
       <SearchBox />
     </div>
   );
