@@ -8,6 +8,8 @@ export default function CopyButton({ text }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = async () => {
+    console.log("Click detectado, texto:", text);
+
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
