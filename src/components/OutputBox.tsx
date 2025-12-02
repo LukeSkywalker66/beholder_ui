@@ -38,22 +38,30 @@ ONU Señal Detalle: ${data?.onu_signal_smrt?.onu_signal_value ?? "-"}
 
   return (
     <div className="border rounded p-4 mt-4 bg-gray-50">
-      <h3 className="font-bold mb-2">Diagnóstico normalizado</h3>
+      <div className="header-row">
+        <h3 className="diagnostic-title">Diagnóstico normalizado</h3>
+        <CopyButton text={outputText} />
+      </div>
       <div className="bg-white p-2 rounded font-mono whitespace-pre-wrap">
-        <p><strong>Cliente:</strong> {data?.mikrotik?.comment ?? "-"}</p>
-        <p><strong>Domicilio:</strong> {data?.direccion ?? "-"}</p>
-        <p><strong>Plan:</strong> {data?.plan ?? "-"}</p>
-        <p><strong>Nodo:</strong> {data?.nodo_nombre ? data.nodo_nombre + " - " + (data?.nodo_ip ?? "-") : "-"}</p>
-        <p><strong>OLT:</strong> {data?.OLT ?? "-"}</p>
-        <p><strong>PPPoE User:</strong> {data?.pppoe_username ?? "-"}</p>
-        <p><strong>Estado PPPoE:</strong> {traducciones[data?.mikrotik?.active] ?? "-"}</p>
-        <p><strong>Tiempo activo:</strong> {data?.mikrotik?.uptime ?? "-"}</p>
-        <p><strong>Última conexión:</strong> {data?.mikrotik?.secret?.["last-logged-out"] ?? "-"}</p>
-        <p><strong>ONU s/n:</strong> {data?.onu_sn ?? "-"}</p>
-        <p><strong>ONU Estado:</strong> {traducciones[data?.onu_status_smrt?.onu_status] ?? "-"}</p>
-        <p><strong>ONU Último cambio de estado:</strong> {data?.onu_status_smrt?.last_status_change ?? "-"}</p>
-        <p><strong>ONU Señal:</strong> {traducciones[data?.onu_signal_smrt?.onu_signal] ?? "-"}</p>
-        <p><strong>ONU Señal Detalle:</strong> {data?.onu_signal_smrt?.onu_signal_value ?? "-"}</p>
+      <div className="grid">
+        <div className="cell span-2"><strong>Cliente:</strong> {data?.mikrotik?.comment ?? "-"}</div>
+        <div className="cell span-2"><strong>Domicilio:</strong> {data?.direccion ?? "-"}</div>
+        <div className="cell"><strong>Plan:</strong> {data?.plan ?? "-"}</div>
+        <div className="cell"><strong>Nodo:</strong> {data?.nodo_nombre ? data.nodo_nombre + " - " + (data?.nodo_ip ?? "-") : "-"}</div>
+        <div className="cell"><strong>OLT:</strong> {data?.OLT ?? "-"}</div>
+        <div className={`cell ${data?.mikrotik?.active ? "estado-ok" : "estado-error"}`}>
+          <strong>Estado PPPoE:</strong> {traducciones[data?.mikrotik?.active] ?? "-"}
+        </div>
+        <div className="cell"><strong>Tiempo activo:</strong> {data?.mikrotik?.uptime ?? "-"}</div>
+        <div className="cell"><strong>Última conexión:</strong> {data?.mikrotik?.secret?.["last-logged-out"] ?? "-"}</div>
+        <div className="cell"><strong>ONU s/n:</strong> {data?.onu_sn ?? "-"}</div>
+        <div className={`cell ${data?.onu_status_smrt?.onu_status === "Online" ? "estado-ok" : "estado-error"}`}>
+          <strong>ONU Estado:</strong> {traducciones[data?.onu_status_smrt?.onu_status] ?? "-"}
+        </div>
+        <div className="cell"><strong>Último cambio de estado:</strong> {data?.onu_status_smrt?.last_status_change ?? "-"}</div>
+        <div className="cell"><strong>ONU Señal:</strong> {traducciones[data?.onu_signal_smrt?.onu_signal] ?? "-"}</div>
+        <div className="cell"><strong>Señal Detalle:</strong> {data?.onu_signal_smrt?.onu_signal_value ?? "-"}</div>
+        </div>
       </div>
       <CopyButton text={outputText} />
     </div>

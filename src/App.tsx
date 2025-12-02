@@ -1,17 +1,26 @@
+import { useState } from "react";
 import SearchBox from "./components/SearchBox";
+import OutputBox from "./components/OutputBox";
 import './App.css';
-import portadaImg from './assets/beholder2.png';
+import logo from './assets/beholder2.png';
 
 function App() {
-  return (
-    <div className="app">
-      <div className="header">
-        <h1>Beholder</h1>
-        <img src={portadaImg} alt="Logo Beholder" className="logo-right" />
-      </div>
+  const [resultData, setResultData] = useState<any>(null);
 
-      <h2>Diagnóstico centralizado de 2F Internet</h2>
-      <SearchBox />
+  return (
+    <div className="layout">
+      {/* Panel izquierdo */}
+      <aside className="sidebar">
+        <img src={logo} alt="Logo Beholder" className="logo-sidebar" />
+        <h1>Beholder</h1>
+        <h2>Diagnóstico centralizado de 2F Internet</h2>
+        <SearchBox onResult={setResultData} />
+      </aside>
+
+      {/* Panel derecho */}
+      <main className="results">
+        {resultData && <OutputBox data={resultData} />}
+      </main>
     </div>
   );
 }

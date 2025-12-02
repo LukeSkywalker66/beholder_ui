@@ -18,11 +18,12 @@ export default function CopyButton({ text }: CopyButtonProps) {
   };
 
   return (
-    <div>
+    <div className="copy-button">
       <button onClick={copyToClipboard}>
-        Copiar al portapapeles
+        📋 Copiar
       </button>
       {copied && <span style={{ marginLeft: "8px" }}>✔ Copiado</span>}
     </div>
   );
+
 }

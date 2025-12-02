@@ -1,16 +1,13 @@
 import { useState } from "react";
-import OutputBox from "./OutputBox";
 
-export default function SearchBox() {
+export default function SearchBox({ onResult }: { onResult: (data: any) => void }) {
   const [pppoe, setPppoe] = useState("");
-  const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async () => {
     setLoading(true);
     setError(null);
-    setData(null);
 
     try {
       const resp = await fetch(
@@ -27,9 +24,10 @@ export default function SearchBox() {
       }
 
       const json = await resp.json();
-      setData(json);
+      onResult(json); // enviar resultado al padre
     } catch (err: any) {
       setError(err.message);
+      onResult(null); // limpiar resultado si hay error
     } finally {
       setLoading(false);
     }
@@ -41,6 +39,11 @@ export default function SearchBox() {
         type="text"
         value={pppoe}
         onChange={(e) => setPppoe(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            handleSearch();
+          }
+        }}
         placeholder="Ingrese PPPoE"
         className="border px-2 py-1 mr-2"
       />
@@ -53,8 +56,6 @@ export default function SearchBox() {
 
       {loading && <p>Buscando...</p>}
       {error && <p className="text-red-600">Error: {error}</p>}
-      {data && <OutputBox data={data} />}
-
     </div>
   );
 }
