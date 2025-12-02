@@ -8,7 +8,7 @@ import './App.css'
 function App() {
   return (
     <div>
-      <h1>Beholder UI</h1>
+      <h1>Beholder - Diagnóstico cenrtalizado de 2F Internet</h1>
       <SearchBox />
     </div>
   );
