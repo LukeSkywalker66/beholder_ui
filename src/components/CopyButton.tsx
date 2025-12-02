@@ -13,6 +13,7 @@ export default function CopyButton({ text }: CopyButtonProps) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         // ✅ Camino moderno (HTTPS / localhost)
         await navigator.clipboard.writeText(text);
+        console.log("Camino moderno (HTTPS / localhost) usado para copiar al portapapeles.");
       } else {
         // ✅ Fallback para HTTP inseguro
         const textarea = document.createElement("textarea");
@@ -21,6 +22,7 @@ export default function CopyButton({ text }: CopyButtonProps) {
         textarea.select();
         document.execCommand("copy");
         document.body.removeChild(textarea);
+        console.log("Fallback usado para copiar al portapapeles.");
       }
 
       setCopied(true);
