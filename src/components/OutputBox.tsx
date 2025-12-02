@@ -20,21 +20,21 @@ export default function OutputBox({ data }: OutputBoxProps) {
 
   // Texto plano para copiar
   const outputText = `
-Cliente: ${data?.mikrotik?.comment ?? "-"}
-Domicilio: ${data?.direccion ?? "-"}
-Plan: ${data?.plan ?? "-"}
-Nodo: ${data?.nodo_nombre ? data.nodo_nombre + " - " + (data?.nodo_ip ?? "-") : "-"}
-OLT: ${data?.OLT ?? "-"}
-PPPoE User: ${data?.pppoe_username ?? "-"}
-Estado PPPoE: ${traducciones[data?.mikrotik?.active] ?? "-"}
-Tiempo activo: ${data?.mikrotik?.uptime ?? "-"}
-Última conexión: ${data?.mikrotik?.secret?.["last-logged-out"] ?? "-"}
-ONU s/n: ${data?.onu_sn ?? "-"}
-ONU Estado: ${traducciones[data?.onu_status_smrt?.onu_status] ?? "-"}
-ONU Último cambio de estado: ${data?.onu_status_smrt?.last_status_change ?? "-"}
-ONU Señal: ${traducciones[data?.onu_signal_smrt?.onu_signal] ?? "-"}
-ONU Señal Detalle: ${data?.onu_signal_smrt?.onu_signal_value ?? "-"}
-`;
+    Cliente: ${data?.mikrotik?.comment ?? "-"}
+    Domicilio: ${data?.direccion ?? "-"}
+    Plan: ${data?.plan ?? "-"}
+    Nodo: ${data?.nodo_nombre ? data.nodo_nombre + " - " + (data?.nodo_ip ?? "-") : "-"}
+    OLT: ${data?.OLT ?? "-"}
+    PPPoE User: ${data?.pppoe_username ?? "-"}
+    Estado PPPoE: ${traducciones[data?.mikrotik?.active] ?? "-"}
+    Tiempo activo: ${data?.mikrotik?.uptime ?? "-"}
+    Última conexión: ${data?.mikrotik?.secret?.["last-logged-out"] ?? "-"}
+    ONU s/n: ${data?.onu_sn ?? "-"}
+    ONU Estado: ${traducciones[data?.onu_status_smrt?.onu_status] ?? "-"}
+    ONU Último cambio de estado: ${data?.onu_status_smrt?.last_status_change ?? "-"}
+    ONU Señal: ${traducciones[data?.onu_signal_smrt?.onu_signal] ?? "-"}
+    ONU Señal Detalle: ${data?.onu_signal_smrt?.onu_signal_value ?? "-"}
+    `;
 
   return (
     <div className="border rounded p-4 mt-4 bg-gray-50">
