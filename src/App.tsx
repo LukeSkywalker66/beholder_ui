@@ -1,6 +1,6 @@
 import SearchBox from "./components/SearchBox";
 import './App.css';
-import portadaImg from './assets/beho9lder1.png';
+import portadaImg from './assets/beholder2.png';
 
 function App() {
   return (
