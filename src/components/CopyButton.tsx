@@ -9,15 +9,27 @@ export default function CopyButton({ text }: CopyButtonProps) {
 
   const copyToClipboard = async () => {
     console.log("Click detectado, texto:", text);
-
     try {
-      await navigator.clipboard.writeText(text);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        // ✅ Camino moderno (HTTPS / localhost)
+        await navigator.clipboard.writeText(text);
+      } else {
+        // ✅ Fallback para HTTP inseguro
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // feedback por 2 segundos
+      setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Error copiando al portapapeles", err);
     }
   };
+
 
   return (
     <div className="copy-button">
