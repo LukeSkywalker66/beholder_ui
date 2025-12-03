@@ -62,8 +62,10 @@ export default function OutputBox({ data }: OutputBoxProps) {
         <div className="cell"><strong>ONU Señal:</strong> {traducciones[data?.onu_signal_smrt?.onu_signal] ?? "-"}</div>
         <div className="cell"><strong>Señal Detalle:</strong> {data?.onu_signal_smrt?.onu_signal_value ?? "-"}</div>
         </div>
+        
       </div>
       <CopyButton text={outputText} />
     </div>
+    //luego agregar los demas campos de datos de cliente
   );
 }
