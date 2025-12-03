@@ -108,7 +108,8 @@ Guardás en tu tabla local:
   onu_sn: "HWTCE56F449D"
 }
 ```
-
+sumar la api de cnMaestro a la consulta.
+En la base de clientes
 ---
 
 ## 🧠 Ventajas
@@ -119,4 +120,4 @@ Guardás en tu tabla local:
 
 ---
 
-Puedo ayudarte a definir el esquema de la tabla local, los endpoints de sincronización, o incluso un cron para actualizar cada noche. ¿Querés que empecemos por el diseño de la tabla `clientes` en tu base local?
+
