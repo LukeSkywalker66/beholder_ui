@@ -20,7 +20,7 @@ export default function OutputBox({ data }: OutputBoxProps) {
 
   // Texto plano para copiar
   const outputText = `
-    Cliente: ${data?.mikrotik?.comment ?? "-"}
+    Cliente: ${data?.cliente_nombre ?? "-"}
     Domicilio: ${data?.direccion ?? "-"}
     Plan: ${data?.plan ?? "-"}
     Nodo: ${data?.nodo_nombre ? data.nodo_nombre + " - " + (data?.nodo_ip ?? "-") : "-"}
