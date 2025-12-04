@@ -44,7 +44,7 @@ export default function OutputBox({ data }: OutputBoxProps) {
       </div>
       <div className="bg-white p-2 rounded font-mono whitespace-pre-wrap">
       <div className="grid">
-        <div className="cell span-2"><strong>Cliente:</strong> {data?.mikrotik?.comment ?? "-"}</div>
+        <div className="cell span-2"><strong>Cliente:</strong> {data?.cliente_nombre ?? "-"}</div>
         <div className="cell span-2"><strong>Domicilio:</strong> {data?.direccion ?? "-"}</div>
         <div className="cell"><strong>Plan:</strong> {data?.plan ?? "-"}</div>
         <div className="cell"><strong>Nodo:</strong> {data?.nodo_nombre ? data.nodo_nombre + " - " + (data?.nodo_ip ?? "-") : "-"}</div>
