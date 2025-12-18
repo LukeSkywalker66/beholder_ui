@@ -43,10 +43,9 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
         setStatusMsg(`✅ ${results.length} coincidencias:`);
       }
     } catch (err: any) {
-      setError("Error de conexión o búsqueda.");
-      setStatusMsg(""); // Limpiamos el mensaje de "Buscando..." si falla
+      setError("Error de conexión.");
+      setStatusMsg("");
     } finally {
-      // CORRECCIÓN CLAVE: Liberamos el botón SIEMPRE
       setLoading(false);
     }
   };
@@ -65,7 +64,6 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
       setStatusMsg(""); 
     } catch (err: any) {
       setError(`Error: ${err.message}`);
-      setStatusMsg("");
     } finally {
       setLoading(false);
     }
@@ -78,7 +76,6 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
         <input
           type="text"
           value={query}
-          // CORRECCIÓN CLAVE: Al escribir, limpiamos errores para "revivir" la UI
           onChange={(e) => {
             setQuery(e.target.value);
             if (error) setError(null);
@@ -104,28 +101,20 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
         {error && <p className="text-red-500 font-bold bg-red-50 p-2 rounded border border-red-200 inline-block">❌ {error}</p>}
       </div>
 
-      {/* Lista de Resultados */}
+      {/* Lista de Resultados (Minimalista) */}
       {candidates.length > 0 && (
         <ul className="mt-4 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden divide-y divide-gray-100">
           {candidates.map((c) => (
             <li
               key={c.pppoe}
               onClick={() => fetchDiagnosis(c.pppoe)}
-              className="p-4 hover:bg-blue-50 cursor-pointer transition-colors group flex justify-between items-center"
+              className="p-4 hover:bg-blue-50 cursor-pointer transition-colors group text-left"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <span className="font-bold text-gray-800 group-hover:text-blue-700 text-lg">
-                    {c.nombre}
-                  </span>
-                  <span className={`text-xs px-2 py-1 rounded-full font-semibold border ${
-                    c.origen === 'ispcube' 
-                      ? 'bg-green-100 text-green-700 border-green-200' 
-                      : 'bg-orange-100 text-orange-700 border-orange-200'
-                  }`}>
-                    {c.origen === 'ispcube' ? 'Cliente' : 'Técnico'}
-                  </span>
-                </div>
+              {/* Solo datos esenciales */}
+              <div className="flex flex-col">
+                <span className="font-bold text-gray-800 group-hover:text-blue-700 text-lg">
+                  {c.nombre}
+                </span>
                 
                 <div className="text-sm text-gray-500 mt-1 flex flex-col sm:flex-row sm:gap-4">
                   <span className="flex items-center gap-1">
@@ -135,10 +124,6 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
                     📍 {c.direccion}
                   </span>
                 </div>
-              </div>
-
-              <div className="text-gray-400 group-hover:text-blue-500 pl-4">
-                👉
               </div>
             </li>
           ))}
