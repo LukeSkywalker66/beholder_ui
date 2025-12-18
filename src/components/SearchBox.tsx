@@ -113,7 +113,7 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
               {/* Solo datos esenciales */}
               <div className="flex flex-col">
                 <span className="font-bold text-gray-800 group-hover:text-blue-700 text-lg">
-                  {c.nombre}
+                  👉 {c.nombre}
                 </span>
                 
                 <div className="text-sm text-gray-500 mt-1 flex flex-col sm:flex-row sm:gap-4">
