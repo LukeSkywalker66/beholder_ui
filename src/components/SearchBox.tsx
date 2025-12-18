@@ -1,121 +1,136 @@
 import { useState } from "react";
 
-// Interfaz para los resultados de la búsqueda
+// Definimos la interfaz para los resultados de búsqueda "livianos"
 interface SearchResult {
   pppoe: string;
   nombre: string;
   direccion: string;
-  id: number;
-  origen: string; // 'ispcube' o 'smartolt'
+  origen: string; // 'ispcube', 'mikrotik', 'smartolt'
 }
 
 export default function SearchBox({ onResult }: { onResult: (data: any) => void }) {
   const [query, setQuery] = useState("");
   const [candidates, setCandidates] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState(""); // Mensaje de estado (ej: "Buscando...")
 
-  // 1. Buscar candidatos mientras escribís o das Enter
-  const handleSearchCandidates = async () => {
-    if (query.length < 3) return;
+  // Paso 1: Buscar coincidencias (Search)
+  const handleSearch = async () => {
+    if (!query.trim()) return;
+    
     setLoading(true);
     setError(null);
     setCandidates([]);
-    onResult(null); 
+    onResult(null); // Limpiar resultado anterior
+    setStatusMsg("🔍 Escaneando padrón...");
 
     try {
+      // Ajusta la URL al endpoint que creamos en Python (db.search_client)
       const resp = await fetch(
-        `${import.meta.env.VITE_API_URL}/search?q=${encodeURIComponent(query)}`,
-        {
-          headers: { "x-api-key": import.meta.env.VITE_API_KEY },
-        }
+        `${import.meta.env.VITE_API_URL}/clients/search?q=${query}`,
+        { headers: { "x-api-key": import.meta.env.VITE_API_KEY } }
       );
-      if (!resp.ok) throw new Error("Error buscando clientes");
+
+      if (!resp.ok) throw new Error(`Error ${resp.status}`);
       
-      const data = await resp.json();
-      
-      if (data.length === 0) {
-        setError("No se encontraron coincidencias. Intente con el PPPoE exacto.");
-        // Opcional: Podrías disparar executeDiagnosis(query) aquí si querés forzar.
+      const results: SearchResult[] = await resp.json();
+
+      if (results.length === 0) {
+        setError("No se encontraron clientes con ese criterio.");
+        setStatusMsg("");
+      } else if (results.length === 1) {
+        // ✨ AUTOSELECCIÓN: Si es único, vamos directo al diagnóstico
+        setStatusMsg("🎯 Resultado único encontrado. Obteniendo diagnóstico...");
+        await fetchDiagnosis(results[0].pppoe);
       } else {
-        setCandidates(data);
+        // Múltiples resultados: Mostrar lista
+        setCandidates(results);
+        setStatusMsg(`✅ Se encontraron ${results.length} coincidencias. Seleccione una:`);
       }
+
     } catch (err: any) {
-      setError(err.message);
+      setError("Error de conexión con el servidor.");
+      console.error(err);
     } finally {
-      setLoading(false);
+      // Solo quitamos loading si NO estamos en autoselección (para que no parpadee)
+      // En este caso simple, lo manejamos dentro de fetchDiagnosis o al final
+      if (candidates.length > 0 || error) setLoading(false);
     }
   };
 
-  // 2. Ejecutar Diagnóstico Final (al elegir un cliente de la lista)
-  const executeDiagnosis = async (pppoeUser: string) => {
+  // Paso 2: Obtener diagnóstico técnico (Diagnosis)
+  const fetchDiagnosis = async (pppoe: string) => {
     setLoading(true);
-    setCandidates([]); // Limpiamos la lista
-    setError(null);
-    setQuery(pppoeUser); // Ponemos el PPPoE en el input
-
+    setCandidates([]); // Limpiamos la lista para limpiar visualmente
+    setStatusMsg(`📡 Interrogando equipos para ${pppoe}...`);
+    
     try {
       const resp = await fetch(
-        `${import.meta.env.VITE_API_URL}/diagnosis/${pppoeUser}`,
-        {
-          headers: { "x-api-key": import.meta.env.VITE_API_KEY },
-        }
+        `${import.meta.env.VITE_API_URL}/diagnosis/${pppoe}`,
+        { headers: { "x-api-key": import.meta.env.VITE_API_KEY } }
       );
-      if (!resp.ok) throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+      
+      if (!resp.ok) throw new Error("Fallo en diagnóstico");
+      
       const json = await resp.json();
-      onResult(json);
+      onResult(json); // Enviamos la data final al OutputBox
+      setStatusMsg(""); 
     } catch (err: any) {
-      setError(err.message);
-      onResult(null);
+      setError(`Error al diagnosticar: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-4 relative w-full max-w-lg mx-auto">
+    <div className="p-4 w-full">
       <div className="flex gap-2">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearchCandidates()}
-          placeholder="Nombre, Dir, DNI o PPPoE..."
-          className="border border-gray-300 px-3 py-2 flex-grow rounded shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-black bg-white"
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          placeholder="Nombre, Dirección, DNI o Usuario..."
+          className="border px-3 py-2 rounded w-full shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-black"
         />
         <button
-          onClick={handleSearchCandidates}
+          onClick={handleSearch}
           disabled={loading}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 disabled:opacity-50 font-semibold"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition-colors disabled:opacity-50"
         >
           {loading ? "..." : "Buscar"}
         </button>
       </div>
 
-      {error && <p className="text-red-500 mt-2 text-sm text-center">{error}</p>}
+      {/* Área de Estado / Carga */}
+      <div className="mt-3 min-h-[24px]">
+        {loading && <p className="text-blue-600 font-medium animate-pulse">{statusMsg}</p>}
+        {!loading && statusMsg && candidates.length > 0 && <p className="text-gray-600 text-sm">{statusMsg}</p>}
+        {error && <p className="text-red-600 font-bold">❌ {error}</p>}
+      </div>
 
-      {/* Lista flotante de resultados */}
+      {/* Lista de Candidatos (Mejorada) */}
       {candidates.length > 0 && (
-        <ul className="absolute z-20 w-full left-0 mt-2 bg-white text-black border border-gray-200 rounded-md shadow-xl max-h-64 overflow-y-auto">
+        <ul className="candidate-list mt-2 border rounded-md shadow-lg bg-white overflow-hidden max-h-[400px] overflow-y-auto">
           {candidates.map((c) => (
             <li
               key={c.pppoe}
-              onClick={() => executeDiagnosis(c.pppoe)}
-              className="p-3 border-b border-gray-100 hover:bg-blue-50 cursor-pointer transition-colors flex justify-between items-center"
+              onClick={() => fetchDiagnosis(c.pppoe)}
+              className="candidate-item border-b last:border-0 p-3 hover:bg-blue-50 cursor-pointer transition-colors text-left group"
             >
-              <div>
-                <div className="font-bold text-gray-800">{c.nombre}</div>
-                <div className="text-sm text-gray-500">
-                  {c.direccion}
-                </div>
-              </div>
-              <div className="text-right">
-                <span className="block text-xs font-mono text-blue-600 bg-blue-100 px-2 py-0.5 rounded">
-                  {c.pppoe}
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-gray-800 group-hover:text-blue-700">
+                  👉 {c.nombre}
                 </span>
-                {c.origen === 'smartolt' && (
-                  <span className="text-[10px] text-orange-500 font-semibold">Solo Técnico</span>
-                )}
+                <span className={`text-xs px-2 py-1 rounded-full ${c.origen === 'ispcube' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                  {c.origen === 'ispcube' ? 'Cliente' : 'Técnico'}
+                </span>
+              </div>
+              
+              <div className="text-sm text-gray-600 mt-1 pl-6">
+                <p>👤 <span className="font-mono">{c.pppoe}</span></p>
+                <p>📍 {c.direccion}</p>
               </div>
             </li>
           ))}
