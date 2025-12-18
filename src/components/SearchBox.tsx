@@ -62,7 +62,6 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
       if (!resp.ok) throw new Error("Fallo");
       
       const data = await resp.json();
-      // Guardamos el PPPoE original para mostrarlo siempre en la caja de resultados
       onResult({ ...data, pppoe_original: pppoe });
       setStatusMsg(""); 
     } catch (err: any) {
@@ -73,9 +72,9 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
   };
 
   return (
-    <div className="w-full">
-      {/* Buscador */}
-      <div className="flex flex-col gap-3 mb-4">
+    <div className="w-full h-full flex flex-col">
+      {/* Input y Botón */}
+      <div className="flex flex-col gap-3 mb-4 shrink-0">
         <div className="relative">
           <input
             type="text"
@@ -95,56 +94,57 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow transition-all disabled:opacity-50"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow transition-all transform active:scale-95 disabled:opacity-50"
         >
           {loading ? "Buscando..." : "Buscar Cliente"}
         </button>
       </div>
 
       {/* Mensajes */}
-      <div className="mb-3 min-h-[20px]">
+      <div className="mb-3 min-h-[20px] shrink-0">
         {loading && <p className="text-blue-600 font-medium text-sm animate-pulse">{statusMsg}</p>}
         {!loading && statusMsg && candidates.length > 0 && <p className="text-green-600 font-medium text-sm">{statusMsg}</p>}
         {error && <div className="bg-red-50 text-red-600 p-2 rounded border border-red-200 text-sm">❌ {error}</div>}
       </div>
 
-      {/* Resultados */}
+      {/* Lista de Resultados */}
       {candidates.length > 0 && (
-        <ul className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1 pb-2">
+        <ul className="flex flex-col gap-3 overflow-y-auto pr-2 pb-4 flex-1">
           {candidates.map((c, i) => (
             <li
               key={`${c.pppoe}-${i}`} 
               onClick={() => fetchDiagnosis(c.pppoe)}
-              className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-400 cursor-pointer transition-all group text-left relative overflow-hidden"
+              // CLAVE AQUÍ: 'shrink-0' evita que se aplasten
+              className="shrink-0 bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-400 cursor-pointer transition-all group text-left relative overflow-hidden"
             >
-              {/* Borde lateral de color según origen */}
-              <div className={`absolute left-0 top-0 bottom-0 w-1 ${c.origen === 'ispcube' ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
+              {/* Borde lateral */}
+              <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${c.origen === 'ispcube' ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
 
               <div className="pl-3">
-                <div className="flex justify-between items-start">
+                {/* 1. Encabezado: Nombre y Badge */}
+                <div className="flex justify-between items-start mb-2">
                   <span className="font-bold text-gray-800 group-hover:text-blue-700 text-sm uppercase leading-tight">
                     {c.nombre}
                   </span>
-                  {/* Badge corregido */}
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${c.origen === 'ispcube' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                    {c.origen === 'ispcube' ? 'CLIENTE' : 'NO VINCULADO'}
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ml-2 whitespace-nowrap ${c.origen === 'ispcube' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                    {c.origen === 'ispcube' ? 'CLIENTE' : 'NO VINC'}
                   </span>
                 </div>
                 
-                <div className="mt-2 text-xs text-gray-500 flex flex-col gap-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span title="Usuario PPPoE">👤</span>
-                    <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-mono font-bold">
+                {/* 2. PPPoE (Dato Primordial - Más grande y destacado) */}
+                <div className="flex items-center gap-2 mb-1.5 bg-gray-50 p-1.5 rounded border border-gray-100">
+                   <span title="Usuario PPPoE">👤</span>
+                   <code className="text-blue-800 font-bold font-mono text-sm">
                       {c.pppoe}
-                    </code>
-                  </div>
-                  
-                  <div className="flex items-start gap-1.5">
-                    <span className="shrink-0 mt-0.5" title="Dirección">📍</span>
-                    <span className="leading-snug">
-                      {c.direccion || <i className="text-gray-400">Sin dirección registrada</i>}
-                    </span>
-                  </div>
+                   </code>
+                </div>
+                
+                {/* 3. Dirección (Secundaria) */}
+                <div className="flex items-start gap-1.5 text-xs text-gray-500">
+                  <span className="shrink-0 mt-0.5" title="Dirección">📍</span>
+                  <span className="leading-snug break-words">
+                    {c.direccion || <i className="text-gray-400">Sin dirección</i>}
+                  </span>
                 </div>
               </div>
             </li>
