@@ -21,7 +21,7 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
     setError(null);
     setCandidates([]);
     onResult(null); 
-    setStatusMsg("🔍 Escaneando padrón...");
+    setStatusMsg("🔍 Escaneando...");
 
     try {
       const resp = await fetch(
@@ -33,14 +33,14 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
       const results: SearchResult[] = await resp.json();
 
       if (results.length === 0) {
-        setError("No se encontraron clientes.");
+        setError("No encontrado.");
         setStatusMsg("");
       } else if (results.length === 1) {
-        setStatusMsg("🎯 Resultado único. Obteniendo diagnóstico...");
+        setStatusMsg("🎯 Único. Diagnosticando...");
         await fetchDiagnosis(results[0].pppoe);
       } else {
         setCandidates(results);
-        setStatusMsg(`✅ ${results.length} coincidencias:`);
+        setStatusMsg(`✅ ${results.length} encontrados:`);
       }
     } catch (err: any) {
       setError("Error de conexión.");
@@ -59,7 +59,7 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
         `${import.meta.env.VITE_API_URL}/diagnosis/${pppoe}`,
         { headers: { "x-api-key": import.meta.env.VITE_API_KEY } }
       );
-      if (!resp.ok) throw new Error("Fallo en diagnóstico");
+      if (!resp.ok) throw new Error("Fallo");
       onResult(await resp.json());
       setStatusMsg(""); 
     } catch (err: any) {
@@ -70,9 +70,9 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
   };
 
   return (
-    <div className="p-4 w-full max-w-2xl mx-auto">
-      {/* Buscador */}
-      <div className="flex gap-2">
+    <div className="p-4 w-full">
+      {/* Buscador: Diseño Vertical para Sidebar */}
+      <div className="flex flex-col gap-2">
         <input
           type="text"
           value={query}
@@ -82,46 +82,49 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
             if (statusMsg) setStatusMsg("");
           }}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          placeholder="Nombre, Dirección, DNI o Usuario..."
-          className="flex-1 border border-gray-300 px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-700 bg-white"
+          placeholder="Buscar cliente..."
+          className="w-full border border-gray-300 px-3 py-2 rounded shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-700 bg-white"
         />
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded shadow transition-all disabled:opacity-50"
         >
-          {loading ? "..." : "Buscar"}
+          {loading ? "Buscando..." : "Buscar"}
         </button>
       </div>
 
       {/* Mensajes de Estado */}
-      <div className="mt-3 min-h-[24px] text-center sm:text-left">
-        {loading && <p className="text-blue-600 font-medium animate-pulse">{statusMsg}</p>}
-        {!loading && statusMsg && candidates.length > 0 && <p className="text-gray-500 text-sm">{statusMsg}</p>}
-        {error && <p className="text-red-500 font-bold bg-red-50 p-2 rounded border border-red-200 inline-block">❌ {error}</p>}
+      <div className="mt-2 min-h-[20px]">
+        {loading && <p className="text-blue-600 font-medium text-sm animate-pulse">{statusMsg}</p>}
+        {!loading && statusMsg && candidates.length > 0 && <p className="text-gray-500 text-xs">{statusMsg}</p>}
+        {error && <p className="text-red-500 font-bold text-sm">❌ {error}</p>}
       </div>
 
-      {/* Lista de Resultados (Minimalista) */}
+      {/* Lista de Resultados Compacta */}
       {candidates.length > 0 && (
-        <ul className="mt-4 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden divide-y divide-gray-100">
+        <ul className="mt-3 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden divide-y divide-gray-100 max-h-[60vh] overflow-y-auto">
           {candidates.map((c) => (
             <li
               key={c.pppoe}
               onClick={() => fetchDiagnosis(c.pppoe)}
-              className="p-4 hover:bg-blue-50 cursor-pointer transition-colors group text-left"
+              className="p-3 hover:bg-blue-50 cursor-pointer transition-colors group text-left"
             >
-              {/* Solo datos esenciales */}
               <div className="flex flex-col">
-                <span className="font-bold text-gray-800 group-hover:text-blue-700 text-lg">
-                  👉 {c.nombre}
+                {/* Nombre: Que baje de línea si es largo */}
+                <span className="font-bold text-gray-800 group-hover:text-blue-700 text-sm leading-tight mb-1 break-words">
+                  {c.nombre}
                 </span>
                 
-                <div className="text-sm text-gray-500 mt-1 flex flex-col sm:flex-row sm:gap-4">
+                {/* Detalles verticales siempre */}
+                <div className="text-xs text-gray-500 flex flex-col gap-1">
                   <span className="flex items-center gap-1">
-                    👤 <code className="bg-gray-100 px-1 rounded text-gray-700 font-mono">{c.pppoe}</code>
+                    👤 <code className="bg-gray-100 px-1 rounded text-gray-700 font-mono text-xs">{c.pppoe}</code>
                   </span>
-                  <span className="flex items-center gap-1 truncate max-w-xs">
-                    📍 {c.direccion}
+                  {/* Dirección: Permitir wrap (sin truncate) */}
+                  <span className="flex items-start gap-1">
+                    <span className="shrink-0">📍</span>
+                    <span className="break-words leading-tight">{c.direccion}</span>
                   </span>
                 </div>
               </div>
