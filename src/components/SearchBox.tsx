@@ -1,11 +1,10 @@
 import { useState } from "react";
 
-// Definimos la interfaz para los resultados de búsqueda "livianos"
 interface SearchResult {
   pppoe: string;
   nombre: string;
   direccion: string;
-  origen: string; // 'ispcube', 'mikrotik', 'smartolt'
+  origen: string;
 }
 
 export default function SearchBox({ onResult }: { onResult: (data: any) => void }) {
@@ -13,124 +12,133 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
   const [candidates, setCandidates] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [statusMsg, setStatusMsg] = useState(""); // Mensaje de estado (ej: "Buscando...")
+  const [statusMsg, setStatusMsg] = useState(""); 
 
-  // Paso 1: Buscar coincidencias (Search)
   const handleSearch = async () => {
     if (!query.trim()) return;
     
     setLoading(true);
     setError(null);
     setCandidates([]);
-    onResult(null); // Limpiar resultado anterior
+    onResult(null); 
     setStatusMsg("🔍 Escaneando padrón...");
 
     try {
-      // Ajusta la URL al endpoint que creamos en Python (db.search_client)
       const resp = await fetch(
         `${import.meta.env.VITE_API_URL}/search?q=${query}`,
         { headers: { "x-api-key": import.meta.env.VITE_API_KEY } }
       );
 
       if (!resp.ok) throw new Error(`Error ${resp.status}`);
-      
       const results: SearchResult[] = await resp.json();
 
       if (results.length === 0) {
-        setError("No se encontraron clientes con ese criterio.");
+        setError("No se encontraron clientes.");
         setStatusMsg("");
       } else if (results.length === 1) {
-        // ✨ AUTOSELECCIÓN: Si es único, vamos directo al diagnóstico
-        setStatusMsg("🎯 Resultado único encontrado. Obteniendo diagnóstico...");
+        setStatusMsg("🎯 Resultado único. Obteniendo diagnóstico...");
         await fetchDiagnosis(results[0].pppoe);
       } else {
-        // Múltiples resultados: Mostrar lista
         setCandidates(results);
-        setStatusMsg(`✅ Se encontraron ${results.length} coincidencias. Seleccione una:`);
+        setStatusMsg(`✅ ${results.length} coincidencias:`);
       }
-
     } catch (err: any) {
-      setError("Error de conexión con el servidor.");
-      console.error(err);
+      setError("Error de conexión o búsqueda.");
+      setStatusMsg(""); // Limpiamos el mensaje de "Buscando..." si falla
     } finally {
-      // Solo quitamos loading si NO estamos en autoselección (para que no parpadee)
-      // En este caso simple, lo manejamos dentro de fetchDiagnosis o al final
-      if (candidates.length > 0 || error) setLoading(false);
+      // CORRECCIÓN CLAVE: Liberamos el botón SIEMPRE
+      setLoading(false);
     }
   };
 
-  // Paso 2: Obtener diagnóstico técnico (Diagnosis)
   const fetchDiagnosis = async (pppoe: string) => {
     setLoading(true);
-    setCandidates([]); // Limpiamos la lista para limpiar visualmente
-    setStatusMsg(`📡 Interrogando equipos para ${pppoe}...`);
-    
+    setCandidates([]); 
+    setStatusMsg(`📡 Diagnosticando ${pppoe}...`);
     try {
       const resp = await fetch(
         `${import.meta.env.VITE_API_URL}/diagnosis/${pppoe}`,
         { headers: { "x-api-key": import.meta.env.VITE_API_KEY } }
       );
-      
       if (!resp.ok) throw new Error("Fallo en diagnóstico");
-      
-      const json = await resp.json();
-      onResult(json); // Enviamos la data final al OutputBox
+      onResult(await resp.json());
       setStatusMsg(""); 
     } catch (err: any) {
-      setError(`Error al diagnosticar: ${err.message}`);
+      setError(`Error: ${err.message}`);
+      setStatusMsg("");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="p-4 w-full">
+    <div className="p-4 w-full max-w-2xl mx-auto">
+      {/* Buscador */}
       <div className="flex gap-2">
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          // CORRECCIÓN CLAVE: Al escribir, limpiamos errores para "revivir" la UI
+          onChange={(e) => {
+            setQuery(e.target.value);
+            if (error) setError(null);
+            if (statusMsg) setStatusMsg("");
+          }}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           placeholder="Nombre, Dirección, DNI o Usuario..."
-          className="border px-3 py-2 rounded w-full shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-black"
+          className="flex-1 border border-gray-300 px-4 py-2 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-700 bg-white"
         />
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow transition-colors disabled:opacity-50"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "..." : "Buscar"}
         </button>
       </div>
 
-      {/* Área de Estado / Carga */}
-      <div className="mt-3 min-h-[24px]">
+      {/* Mensajes de Estado */}
+      <div className="mt-3 min-h-[24px] text-center sm:text-left">
         {loading && <p className="text-blue-600 font-medium animate-pulse">{statusMsg}</p>}
-        {!loading && statusMsg && candidates.length > 0 && <p className="text-gray-600 text-sm">{statusMsg}</p>}
-        {error && <p className="text-red-600 font-bold">❌ {error}</p>}
+        {!loading && statusMsg && candidates.length > 0 && <p className="text-gray-500 text-sm">{statusMsg}</p>}
+        {error && <p className="text-red-500 font-bold bg-red-50 p-2 rounded border border-red-200 inline-block">❌ {error}</p>}
       </div>
 
-      {/* Lista de Candidatos (Mejorada) */}
+      {/* Lista de Resultados */}
       {candidates.length > 0 && (
-        <ul className="candidate-list mt-2 border rounded-md shadow-lg bg-white overflow-hidden max-h-[400px] overflow-y-auto">
+        <ul className="mt-4 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden divide-y divide-gray-100">
           {candidates.map((c) => (
             <li
               key={c.pppoe}
               onClick={() => fetchDiagnosis(c.pppoe)}
-              className="candidate-item border-b last:border-0 p-3 hover:bg-blue-50 cursor-pointer transition-colors text-left group"
+              className="p-4 hover:bg-blue-50 cursor-pointer transition-colors group flex justify-between items-center"
             >
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-gray-800 group-hover:text-blue-700">
-                  👉 {c.nombre}
-                </span>
-                <span className={`text-xs px-2 py-1 rounded-full ${c.origen === 'ispcube' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
-                  {c.origen === 'ispcube' ? 'Cliente' : 'Técnico'}
-                </span>
+              <div className="flex-1">
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-gray-800 group-hover:text-blue-700 text-lg">
+                    {c.nombre}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded-full font-semibold border ${
+                    c.origen === 'ispcube' 
+                      ? 'bg-green-100 text-green-700 border-green-200' 
+                      : 'bg-orange-100 text-orange-700 border-orange-200'
+                  }`}>
+                    {c.origen === 'ispcube' ? 'Cliente' : 'Técnico'}
+                  </span>
+                </div>
+                
+                <div className="text-sm text-gray-500 mt-1 flex flex-col sm:flex-row sm:gap-4">
+                  <span className="flex items-center gap-1">
+                    👤 <code className="bg-gray-100 px-1 rounded text-gray-700 font-mono">{c.pppoe}</code>
+                  </span>
+                  <span className="flex items-center gap-1 truncate max-w-xs">
+                    📍 {c.direccion}
+                  </span>
+                </div>
               </div>
-              
-              <div className="text-sm text-gray-600 mt-1 pl-6">
-                <p>👤 <span className="font-mono">{c.pppoe}</span></p>
-                <p>📍 {c.direccion}</p>
+
+              <div className="text-gray-400 group-hover:text-blue-500 pl-4">
+                👉
               </div>
             </li>
           ))}
