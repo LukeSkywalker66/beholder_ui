@@ -28,7 +28,7 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
     try {
       // Ajusta la URL al endpoint que creamos en Python (db.search_client)
       const resp = await fetch(
-        `${import.meta.env.VITE_API_URL}/clients/search?q=${query}`,
+        `${import.meta.env.VITE_API_URL}/search?q=${query}`,
         { headers: { "x-api-key": import.meta.env.VITE_API_KEY } }
       );
 
