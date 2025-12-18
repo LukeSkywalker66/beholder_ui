@@ -21,7 +21,7 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
     setError(null);
     setCandidates([]);
     onResult(null); 
-    setStatusMsg("🔍 Escaneando...");
+    setStatusMsg("🔍 Buscando en la base de datos...");
 
     try {
       const resp = await fetch(
@@ -33,17 +33,17 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
       const results: SearchResult[] = await resp.json();
 
       if (results.length === 0) {
-        setError("No encontrado.");
+        setError("No se encontraron clientes.");
         setStatusMsg("");
       } else if (results.length === 1) {
-        setStatusMsg("🎯 Único. Diagnosticando...");
+        setStatusMsg("🎯 Cliente único. Cargando diagnóstico...");
         await fetchDiagnosis(results[0].pppoe);
       } else {
         setCandidates(results);
-        setStatusMsg(`✅ ${results.length} encontrados:`);
+        setStatusMsg(`✅ Se encontraron ${results.length} coincidencias:`);
       }
     } catch (err: any) {
-      setError("Error de conexión.");
+      setError("Error de conexión con el servidor.");
       setStatusMsg("");
     } finally {
       setLoading(false);
@@ -53,14 +53,18 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
   const fetchDiagnosis = async (pppoe: string) => {
     setLoading(true);
     setCandidates([]); 
-    setStatusMsg(`📡 Diagnosticando ${pppoe}...`);
+    setStatusMsg(`📡 Analizando conexión de ${pppoe}...`);
     try {
       const resp = await fetch(
         `${import.meta.env.VITE_API_URL}/diagnosis/${pppoe}`,
         { headers: { "x-api-key": import.meta.env.VITE_API_KEY } }
       );
-      if (!resp.ok) throw new Error("Fallo");
-      onResult(await resp.json());
+      if (!resp.ok) throw new Error("Fallo al obtener diagnóstico");
+      
+      const data = await resp.json();
+      // Inyectamos el usuario original para que OutputBox lo muestre siempre
+      onResult({ ...data, pppoe_original: pppoe });
+      
       setStatusMsg(""); 
     } catch (err: any) {
       setError(`Error: ${err.message}`);
@@ -70,62 +74,80 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
   };
 
   return (
-    <div className="p-4 w-full">
-      {/* Buscador: Diseño Vertical para Sidebar */}
-      <div className="flex flex-col gap-2">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            if (error) setError(null);
-            if (statusMsg) setStatusMsg("");
-          }}
-          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          placeholder="Buscar cliente..."
-          className="w-full border border-gray-300 px-3 py-2 rounded shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-700 bg-white"
-        />
+    <div className="w-full">
+      {/* Input y Botón */}
+      <div className="flex flex-col gap-3 mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (error) setError(null);
+              if (statusMsg) setStatusMsg("");
+            }}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            // Placeholder descriptivo como pediste
+            placeholder="Nombre, Dirección, DNI o Usuario..."
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-700 bg-white"
+          />
+          <span className="absolute left-3 top-3.5 text-gray-400">🔍</span>
+        </div>
+        
         <button
           onClick={handleSearch}
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded shadow transition-all disabled:opacity-50"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow transition-all transform active:scale-95 disabled:opacity-50"
         >
-          {loading ? "Buscando..." : "Buscar"}
+          {loading ? "Buscando..." : "Buscar Cliente"}
         </button>
       </div>
 
       {/* Mensajes de Estado */}
-      <div className="mt-2 min-h-[20px]">
+      <div className="mb-3 min-h-[20px]">
         {loading && <p className="text-blue-600 font-medium text-sm animate-pulse">{statusMsg}</p>}
-        {!loading && statusMsg && candidates.length > 0 && <p className="text-gray-500 text-xs">{statusMsg}</p>}
-        {error && <p className="text-red-500 font-bold text-sm">❌ {error}</p>}
+        {!loading && statusMsg && candidates.length > 0 && <p className="text-green-600 font-medium text-sm">{statusMsg}</p>}
+        {error && <div className="bg-red-50 text-red-600 p-2 rounded border border-red-200 text-sm">❌ {error}</div>}
       </div>
 
-      {/* Lista de Resultados Compacta */}
+      {/* Lista de Resultados (Tarjetas Modernas) */}
       {candidates.length > 0 && (
-        <ul className="mt-3 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden divide-y divide-gray-100 max-h-[60vh] overflow-y-auto">
-          {candidates.map((c) => (
+        <ul className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-1 pb-2">
+          {candidates.map((c, i) => (
             <li
-              key={c.pppoe}
+              // Usamos índice para permitir duplicados (mismo usuario en dif nodos)
+              key={`${c.pppoe}-${i}`} 
               onClick={() => fetchDiagnosis(c.pppoe)}
-              className="p-3 hover:bg-blue-50 cursor-pointer transition-colors group text-left"
+              className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-400 cursor-pointer transition-all group text-left relative overflow-hidden"
             >
-              <div className="flex flex-col">
-                {/* Nombre: Que baje de línea si es largo */}
-                <span className="font-bold text-gray-800 group-hover:text-blue-700 text-sm leading-tight mb-1 break-words">
-                  {c.nombre}
-                </span>
+              {/* Decoración lateral */}
+              <div className={`absolute left-0 top-0 bottom-0 w-1 ${c.origen === 'ispcube' ? 'bg-blue-500' : 'bg-orange-400'}`}></div>
+
+              <div className="pl-2">
+                <div className="flex justify-between items-start">
+                  <span className="font-bold text-gray-800 group-hover:text-blue-700 text-sm uppercase leading-tight">
+                    {c.nombre}
+                  </span>
+                  {/* Badge sutil */}
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${c.origen === 'ispcube' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-orange-50 text-orange-600 border-orange-100'}`}>
+                    {c.origen === 'ispcube' ? 'CLIENTE' : 'INFRA'}
+                  </span>
+                </div>
                 
-                {/* Detalles verticales siempre */}
-                <div className="text-xs text-gray-500 flex flex-col gap-1">
-                  <span className="flex items-center gap-1">
-                    👤 <code className="bg-gray-100 px-1 rounded text-gray-700 font-mono text-xs">{c.pppoe}</code>
-                  </span>
-                  {/* Dirección: Permitir wrap (sin truncate) */}
-                  <span className="flex items-start gap-1">
-                    <span className="shrink-0">📍</span>
-                    <span className="break-words leading-tight">{c.direccion}</span>
-                  </span>
+                <div className="mt-2 text-xs text-gray-500 flex flex-col gap-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span title="Usuario PPPoE">👤</span>
+                    <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-mono font-bold">
+                      {c.pppoe}
+                    </code>
+                  </div>
+                  
+                  <div className="flex items-start gap-1.5">
+                    <span className="shrink-0 mt-0.5" title="Dirección">📍</span>
+                    <span className="leading-snug">
+                      {c.direccion || <i className="text-gray-400">Sin dirección registrada</i>}
+                    </span>
+                  </div>
                 </div>
               </div>
             </li>

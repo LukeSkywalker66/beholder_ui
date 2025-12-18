@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 .layout {
   display: flex;
   min-height: 100vh;
@@ -11,28 +10,34 @@
 
 /* Panel izquierdo */
 .sidebar {
-  width: 300px;
-  background-color: #f5f5f5;
+  width: 400px; /* ANTES: 300px -> AHORA: 400px (Más holgado) */
+  background-color: #f8f9fa; /* Gris muy suave, más moderno */
   padding: 2rem;
   text-align: center;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  box-shadow: 2px 0 10px rgba(0,0,0,0.05); /* Sombra más sutil */
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
 }
 
 .logo-sidebar {
-  width: 220px;
+  width: 200px;
   height: auto;
-  margin-bottom: 1rem;
+  margin: 0 auto 1.5rem auto;
+  display: block;
 }
 
 .sidebar h1 {
   font-size: 2rem;
   margin: 0.5rem 0;
+  color: #2c3e50;
 }
 
 .sidebar h2 {
   font-size: 1rem;
-  color: #666;
+  color: #7f8c8d;
   margin-bottom: 2rem;
+  font-weight: 400;
 }
 
 /* Panel derecho */
@@ -40,201 +45,80 @@
   flex: 1;
   padding: 2rem;
   background-color: #ffffff;
+  overflow-y: auto;
 }
 
 /* Grilla de resultados */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.cell {
-  background-color: #eaeaea;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Celdas un poco más anchas */
   gap: 1rem;
   margin-top: 1rem;
 }
 
 .cell {
-  background-color: #f0f0f0;
+  background-color: #f8f9fa;
   padding: 1rem;
-  border-radius: 6px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #e9ecef;
+  transition: transform 0.2s;
+}
+
+.cell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .estado-ok {
-  background-color: #d4f4dd;
-  border-left: 6px solid #2ecc71;
+  background-color: #d4edda;
+  border-left: 5px solid #28a745;
+  color: #155724;
 }
 
 .estado-error {
-  background-color: #fbe3e3;
-  border-left: 6px solid #e74c3c;
+  background-color: #f8d7da;
+  border-left: 5px solid #dc3545;
+  color: #721c24;
 }
+
 .cell.span-2 {
   grid-column: span 2;
 }
+
+/* Header del output */
 .header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f1f1f1;
 }
 
 .diagnostic-title {
-  font-size: 1.25rem;
-  font-weight: bold;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #34495e;
   margin: 0;
 }
 
-.copy-button button {
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.copy-button button:hover {
-  background-color: #357ab8;
-}
+/* Dark Mode */
 @media (prefers-color-scheme: dark) {
-  body {
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-  }
-
-  .sidebar {
-    background-color: #2c2c2c;
-    color: #f0f0f0;
-  }
-
-  .results {
-    background-color: #1e1e1e;
-    color: #f0f0f0;
-  }
-
-  .cell {
-    background-color: #333;
-    color: #f0f0f0;
-  }
-
-  .estado-ok {
-    background-color: #2e7d32;
-    color: #ffffff;
-  }
-
-  .estado-error {
-    background-color: #c62828;
-    color: #ffffff;
-  }
-
-  .copy-button button {
-    background-color: #90caf9;
-    color: #000;
-  }
-
-  .copy-button button:hover {
-    background-color: #64b5f6;
-  }
+  body { background-color: #1a1a1a; color: #e0e0e0; }
+  .sidebar { background-color: #252525; border-right: 1px solid #333; }
+  .sidebar h1 { color: #ecf0f1; }
+  .sidebar h2 { color: #bdc3c7; }
+  .results { background-color: #1a1a1a; }
+  .cell { background-color: #333; border-color: #444; color: #e0e0e0; }
+  .estado-ok { background-color: #1b4d2e; border-left-color: #2ecc71; color: #d4edda; }
+  .estado-error { background-color: #63171b; border-left-color: #e74c3c; color: #f8d7da; }
 }
-body.dark-mode {
-  background-color: #1e1e1e;
-  color: #f0f0f0;
-}
+
+/* Responsive Móvil */
 @media (max-width: 768px) {
-  .layout {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    box-shadow: none;
-    text-align: left;
-    padding: 1rem;
-  }
-
-  .results {
-    padding: 1rem;
-  }
-
-  .grid {
-    grid-template-columns: 1fr; /* una sola columna en móviles */
-  }
-
-  .cell.span-2 {
-    grid-column: span 1;
-  }
-}
-/* --- Estilos para la lista de búsqueda --- */
-
-/* Contenedor de la lista */
-.candidate-list {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  list-style: none;
-  padding: 0;
-  margin-top: 0.5rem;
-  width: 100%;
-  text-align: left; /* Alineación forzada a la izquierda */
-}
-
-/* Items individuales */
-.candidate-item {
-  padding: 1rem;
-  border-bottom: 1px solid #f3f4f6;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.candidate-item:last-child {
-  border-bottom: none;
-}
-
-.candidate-item:hover {
-  background-color: #eff6ff; /* Azul muy suave */
-  border-left: 4px solid #2563eb; /* Borde azul indicador */
-  padding-left: calc(1rem - 4px); /* Ajuste para que no salte */
-}
-
-/* Animación de pulso para el texto de "Buscando..." */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.animate-pulse {
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Modo Oscuro (Opcional, si usas la media query) */
-@media (prefers-color-scheme: dark) {
-  .candidate-list {
-    background-color: #2c2c2c;
-    border-color: #444;
-  }
-  .candidate-item {
-    border-bottom-color: #444;
-  }
-  .candidate-item:hover {
-    background-color: #383838;
-    border-left-color: #64b5f6;
-  }
-  .candidate-item span.font-bold {
-    color: #e5e7eb; /* Texto claro en modo oscuro */
-  }
-  .text-gray-600 {
-    color: #9ca3af;
-  }
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; padding: 1rem; height: auto; }
+  .grid { grid-template-columns: 1fr; }
+  .cell.span-2 { grid-column: span 1; }
 }
