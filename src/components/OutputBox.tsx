@@ -44,30 +44,64 @@ export default function OutputBox({ data }: OutputBoxProps) {
       </div>
       
       <div className="grid">
-        <div className="cell span-2"><strong>Cliente:</strong> {data?.cliente_nombre ?? "-"}</div>
-        <div className="cell span-2"><strong>Domicilio:</strong> {data?.direccion ?? "-"}</div>
         
-        {/* Campo PPPoE agregado */}
-        <div className="cell"><strong>Usuario PPPoE:</strong> {data?.pppoe_original ?? data?.pppoe_username ?? "-"}</div>
-        <div className="cell"><strong>Plan:</strong> {data?.plan ?? "-"}</div>
+        {/* FILA 1: DATOS PRINCIPALES (Ocupan mitad y mitad en PC) */}
+        <div className="cell span-2">
+            <strong>Cliente:</strong> 
+            <span className="text-lg font-medium">{data?.cliente_nombre ?? "-"}</span>
+        </div>
+        <div className="cell span-2">
+            <strong>Domicilio:</strong> 
+            <span>{data?.direccion ?? "-"}</span>
+        </div>
         
-        <div className="cell"><strong>Nodo:</strong> {data?.nodo_nombre ? data.nodo_nombre + " - " + (data?.nodo_ip ?? "-") : "-"}</div>
-        <div className="cell"><strong>OLT:</strong> {data?.OLT ?? "-"}</div>
+        {/* FILA 2: DATOS DE RED (4 columnas en PC) */}
+        <div className="cell">
+            <strong>Usuario PPPoE:</strong> 
+            {data?.pppoe_original ?? data?.pppoe_username ?? "-"}
+        </div>
+        <div className="cell">
+            <strong>Plan:</strong> 
+            {data?.plan ?? "-"}
+        </div>
+        <div className="cell">
+            <strong>Nodo:</strong> 
+            {data?.nodo_nombre ? data.nodo_nombre : "-"}
+            <span className="text-xs text-gray-500">{data?.nodo_ip ?? ""}</span>
+        </div>
+        <div className="cell">
+            <strong>OLT:</strong> 
+            {data?.OLT ?? "-"}
+        </div>
         
+        {/* FILA 3: ESTADOS (Colorizados) */}
         <div className={`cell ${data?.mikrotik?.active ? "estado-ok" : "estado-error"}`}>
           <strong>Estado PPPoE:</strong> {traducciones[data?.mikrotik?.active] ?? "-"}
         </div>
-        <div className="cell"><strong>Tiempo activo:</strong> {data?.mikrotik?.uptime ?? "-"}</div>
-        <div className="cell"><strong>Última conexión:</strong> {data?.mikrotik?.secret?.["last-logged-out"] ?? "-"}</div>
-        
-        <div className="cell"><strong>ONU s/n:</strong> {data?.onu_sn ?? "-"}</div>
+        <div className="cell">
+            <strong>Tiempo activo:</strong> {data?.mikrotik?.uptime ?? "-"}
+        </div>
         <div className={`cell ${data?.onu_status_smrt?.onu_status === "Online" ? "estado-ok" : "estado-error"}`}>
           <strong>ONU Estado:</strong> {traducciones[data?.onu_status_smrt?.onu_status] ?? "-"}
         </div>
-        <div className="cell"><strong>Último cambio:</strong> {data?.onu_status_smrt?.last_status_change ?? "-"}</div>
+        <div className="cell">
+            <strong>ONU Señal:</strong> {traducciones[data?.onu_signal_smrt?.onu_signal] ?? "-"}
+        </div>
+
+        {/* FILA 4: DETALLES */}
+        <div className="cell">
+            <strong>Última conexión:</strong> {data?.mikrotik?.secret?.["last-logged-out"] ?? "-"}
+        </div>
+        <div className="cell">
+            <strong>ONU s/n:</strong> {data?.onu_sn ?? "-"}
+        </div>
+        <div className="cell">
+            <strong>Último cambio:</strong> {data?.onu_status_smrt?.last_status_change ?? "-"}
+        </div>
+        <div className="cell">
+            <strong>Señal Detalle:</strong> {data?.onu_signal_smrt?.onu_signal_value ?? "-"}
+        </div>
         
-        <div className="cell"><strong>ONU Señal:</strong> {traducciones[data?.onu_signal_smrt?.onu_signal] ?? "-"}</div>
-        <div className="cell"><strong>Señal Detalle:</strong> {data?.onu_signal_smrt?.onu_signal_value ?? "-"}</div>
       </div>
     </div>
   );
