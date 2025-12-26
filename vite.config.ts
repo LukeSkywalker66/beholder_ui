@@ -7,6 +7,8 @@ export default defineConfig({
   base: '/monitor/', 
   server: {
     host: true, // <--- Esto es lo importante para Docker
-    port: 5173
+    port: 5173,
+    allowedHosts: true // 👈 LA CLAVE: Permitir cualquier dominio (emerald.2finternet.ar)
   }
 })
+
