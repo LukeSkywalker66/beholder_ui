@@ -5,6 +5,7 @@ interface SearchResult {
   nombre: string;
   direccion: string;
   origen: string;
+  nodo_ip?: string; // <--- 1. AGREGADO: La IP del nodo para diferenciar duplicados
 }
 
 export default function SearchBox({ onResult }: { onResult: (data: any) => void }) {
@@ -37,7 +38,8 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
         setStatusMsg("");
       } else if (results.length === 1) {
         setStatusMsg("🎯 Único. Diagnosticando...");
-        await fetchDiagnosis(results[0].pppoe);
+        // 2. MODIFICADO: Pasamos la IP también en la auto-selección
+        await fetchDiagnosis(results[0].pppoe, results[0].nodo_ip);
       } else {
         setCandidates(results);
         setStatusMsg(`✅ ${results.length} coincidencias:`);
@@ -50,13 +52,22 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
     }
   };
 
-  const fetchDiagnosis = async (pppoe: string) => {
+  // 3. MODIFICADO: Acepta parámetro opcional 'ip'
+  const fetchDiagnosis = async (pppoe: string, ip?: string) => {
     setLoading(true);
     setCandidates([]); 
     setStatusMsg(`📡 Diagnosticando ${pppoe}...`);
+    
     try {
+      // Construimos la URL base
+      let url = `${import.meta.env.VITE_API_URL}/diagnosis/${pppoe}`;
+      // Si tenemos IP, la agregamos como Query Parameter
+      if (ip) {
+        url += `?ip=${ip}`;
+      }
+
       const resp = await fetch(
-        `${import.meta.env.VITE_API_URL}/diagnosis/${pppoe}`,
+        url,
         { headers: { "x-api-key": import.meta.env.VITE_API_KEY } }
       );
       if (!resp.ok) throw new Error("Fallo");
@@ -113,8 +124,8 @@ export default function SearchBox({ onResult }: { onResult: (data: any) => void 
           {candidates.map((c, i) => (
             <li
               key={`${c.pppoe}-${i}`} 
-              onClick={() => fetchDiagnosis(c.pppoe)}
-              // CLAVE AQUÍ: 'shrink-0' evita que se aplasten
+              // 4. MODIFICADO: Al hacer click, enviamos la IP específica de este resultado
+              onClick={() => fetchDiagnosis(c.pppoe, c.nodo_ip)}
               className="shrink-0 bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-400 cursor-pointer transition-all group text-left relative overflow-hidden"
             >
               {/* Borde lateral */}
