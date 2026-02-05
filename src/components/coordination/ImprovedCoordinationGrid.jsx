@@ -98,7 +98,8 @@ const ImprovedCoordinationGrid = ({ workOrders = [], equipments = [], onUpdateWo
     
     // Check for collisions (excluding self)
     if (hasCollision(equipment, newStartTime, newEndTime, draggedItem)) {
-      console.log('Collision detected, cannot drop here');
+      console.log('Collision detected: Cannot move OT', draggedItem.id, 'to', equipment, 
+                  'at', newStartTime.toISOString(), '- another work order occupies this time slot');
       return;
     }
     
