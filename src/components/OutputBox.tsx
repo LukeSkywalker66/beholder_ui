@@ -1,4 +1,5 @@
 import CopyButton from "./CopyButton";
+import BeholderHistory from "./BeholderHistory";
 
 interface OutputBoxProps {
   data: any;
@@ -101,8 +102,12 @@ export default function OutputBox({ data }: OutputBoxProps) {
         <div className="cell">
             <strong>Señal Detalle:</strong> {data?.onu_signal_smrt?.onu_signal_value ?? "-"}
         </div>
-        
       </div>
+
+      {/* Componente de historial: Lazy load */}
+      {(data?.pppoe_original || data?.pppoe_username) && (
+        <BeholderHistory usuarioPPPoE={data?.pppoe_original || data?.pppoe_username} />
+      )}
     </div>
   );
 }
